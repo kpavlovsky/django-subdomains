@@ -1,11 +1,12 @@
 import functools
+
 try:
     from urlparse import urlunparse
 except ImportError:
     from urllib.parse import urlunparse
 
 from django.conf import settings
-from django.core.urlresolvers import reverse as simple_reverse
+from django.urls import reverse as simple_reverse
 
 
 def current_site_domain():
@@ -18,6 +19,7 @@ def current_site_domain():
         domain = domain.replace(prefix, '', 1)
 
     return domain
+
 
 get_domain = current_site_domain
 
@@ -39,7 +41,7 @@ def urljoin(domain, path=None, scheme=None):
 
 
 def reverse(viewname, subdomain=None, scheme=None, args=None, kwargs=None,
-        current_app=None):
+            current_app=None):
     """
     Reverses a URL from the given parameters, in a similar fashion to
     :meth:`django.core.urlresolvers.reverse`.
@@ -58,7 +60,7 @@ def reverse(viewname, subdomain=None, scheme=None, args=None, kwargs=None,
         domain = '%s.%s' % (subdomain, domain)
 
     path = simple_reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs,
-        current_app=current_app)
+                          current_app=current_app)
     return urljoin(domain, path, scheme=scheme)
 
 

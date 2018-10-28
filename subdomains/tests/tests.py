@@ -1,25 +1,27 @@
 import functools
 import mock
 import warnings
+
+from django.urls import NoReverseMatch, set_urlconf
+
 try:
     import urlparse
 except ImportError:  # Python 3
     from urllib import parse as urlparse
 
-from django.core.urlresolvers import NoReverseMatch, set_urlconf
 from django.template import Context, Template
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 
 from subdomains.middleware import (SubdomainMiddleware,
-    SubdomainURLRoutingMiddleware)
+                                   SubdomainURLRoutingMiddleware)
 from subdomains.utils import reverse, urljoin
 
 
 def prefix_values(dictionary, prefix):
     return dict((key, '%s.%s' % (prefix, value))
-        for key, value in dictionary.items())
+                for key, value in dictionary.items())
 
 
 class SubdomainTestMixin(object):
@@ -42,8 +44,8 @@ class SubdomainTestMixin(object):
             'www': 'marketing',
         }, prefix=URL_MODULE_PATH),
         MIDDLEWARE_CLASSES=(
-            'django.middleware.common.CommonMiddleware',
-            'subdomains.middleware.SubdomainURLRoutingMiddleware',
+                'django.middleware.common.CommonMiddleware',
+                'subdomains.middleware.SubdomainURLRoutingMiddleware',
         ))
     def run(self, *args, **kwargs):
         super(SubdomainTestMixin, self).run(*args, **kwargs)
@@ -112,15 +114,15 @@ class SubdomainMiddlewareTestCase(SubdomainTestMixin, TestCase):
             del warnlist
 
             self.assertEqual(host('subdomain.www.%s' % self.DOMAIN),
-                'subdomain')
+                             'subdomain')
             self.assertEqual(host('www.subdomain.www.%s' % self.DOMAIN),
-                'www.subdomain')
+                             'www.subdomain')
 
         with override_settings(REMOVE_WWW_FROM_DOMAIN=True):
             self.assertEqual(host('www.%s' % self.DOMAIN), 'www')
             self.assertEqual(host('subdomain.%s' % self.DOMAIN), 'subdomain')
             self.assertEqual(host('subdomain.www.%s' % self.DOMAIN),
-                'subdomain.www')
+                             'subdomain.www')
 
     def test_case_insensitive_subdomain(self):
         host = 'WWW.%s' % self.DOMAIN
@@ -185,13 +187,13 @@ class SubdomainURLReverseTestCase(SubdomainTestMixin, TestCase):
     def test_url_join(self):
         self.assertEqual(urljoin(self.DOMAIN), 'http://%s' % self.DOMAIN)
         self.assertEqual(urljoin(self.DOMAIN, scheme='https'),
-            'https://%s' % self.DOMAIN)
+                         'https://%s' % self.DOMAIN)
 
         with override_settings(DEFAULT_URL_SCHEME='https'):
             self.assertEqual(urljoin(self.DOMAIN), 'https://%s' % self.DOMAIN)
 
         self.assertEqual(urljoin(self.DOMAIN, path='/example/'),
-            'http://%s/example/' % self.DOMAIN)
+                         'http://%s/example/' % self.DOMAIN)
 
     def test_implicit_reverse(self):
         # Uses settings.SUBDOMAIN_URLCONFS[None], if it exists.
@@ -201,25 +203,25 @@ class SubdomainURLReverseTestCase(SubdomainTestMixin, TestCase):
     def test_explicit_reverse(self):
         # Uses explicitly provided settings.SUBDOMAIN_URLCONF[subdomain]
         self.assertEqual(reverse('home', subdomain='api'),
-            'http://api.%s/' % self.DOMAIN)
+                         'http://api.%s/' % self.DOMAIN)
         self.assertEqual(reverse('view', subdomain='api'),
-            'http://api.%s/view/' % self.DOMAIN)
+                         'http://api.%s/view/' % self.DOMAIN)
 
     def test_wildcard_reverse(self):
         # Falls through to settings.ROOT_URLCONF
         subdomain = 'wildcard'
         self.assertEqual(reverse('home', subdomain),
-            'http://%s.%s/' % (subdomain, self.DOMAIN))
+                         'http://%s.%s/' % (subdomain, self.DOMAIN))
         self.assertEqual(reverse('view', subdomain),
-            'http://%s.%s/view/' % (subdomain, self.DOMAIN))
+                         'http://%s.%s/view/' % (subdomain, self.DOMAIN))
 
     def test_reverse_subdomain_mismatch(self):
         self.assertRaises(NoReverseMatch, lambda: reverse('view'))
 
     def test_reverse_invalid_urlconf_argument(self):
         self.assertRaises(TypeError,
-            lambda: reverse('home',
-                urlconf=self.get_path_to_urlconf('marketing')))
+                          lambda: reverse('home',
+                                          urlconf=self.get_path_to_urlconf('marketing')))
 
     def test_using_not_default_urlconf(self):
         # Ensure that changing the currently active URLconf to something other
@@ -231,7 +233,7 @@ class SubdomainURLReverseTestCase(SubdomainTestMixin, TestCase):
         # This will raise NoReverseMatch if we're using the wrong URLconf for
         # the provided subdomain.
         self.assertEqual(reverse('application', subdomain=subdomain),
-            'http://%s.%s/application/' % (subdomain, self.DOMAIN))
+                         'http://%s.%s/application/' % (subdomain, self.DOMAIN))
 
 
 class SubdomainTemplateTagTestCase(SubdomainTestMixin, TestCase):
@@ -254,7 +256,7 @@ class SubdomainTemplateTagTestCase(SubdomainTestMixin, TestCase):
             context = Context(dict(defaults, subdomain=subdomain))
             rendered = template.render(context).strip()
             self.assertEqual(rendered,
-                'http://%s.%s/' % (subdomain, self.DOMAIN))
+                             'http://%s.%s/' % (subdomain, self.DOMAIN))
 
     def test_no_reverse(self):
         template = self.make_template('{% url view subdomain=subdomain %}')
@@ -280,4 +282,4 @@ class SubdomainTemplateTagTestCase(SubdomainTestMixin, TestCase):
             context = Context(dict(defaults, request=request))
             rendered = template.render(context).strip()
             self.assertEqual(rendered,
-                'http://%s.%s/' % (subdomain, self.DOMAIN))
+                             'http://%s.%s/' % (subdomain, self.DOMAIN))
