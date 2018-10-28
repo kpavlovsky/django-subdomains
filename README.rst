@@ -1,6 +1,6 @@
 django-subdomains
 =================
-
+FOR OF django-subdomains to work with Python 3.7 and Django 2.1.x
 Subdomain helpers for the Django framework, including subdomain-based URL
 routing and reversing.
 
@@ -12,5 +12,4 @@ Build Status
 .. image:: https://secure.travis-ci.org/tkaemming/django-subdomains.png?branch=master
    :target: http://travis-ci.org/tkaemming/django-subdomains
 
-Tested on Python 2.6, 2.7, 3.4 and 3.5 on their supported Django versions from
-1.4 through 1.9.
+Tested on Python 3.7 on their supported Django versions 2.1.x
