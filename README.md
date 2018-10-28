@@ -8,7 +8,7 @@ Old Full documentation can be found here: http://django-subdomains.readthedocs.o
 
 ## Build Status
 
-[![Build status](https://travis-ci.org/kpavlovsky/django-subdomains?branch=master)](https://travis-ci.org/kpavlovsky/django-subdomains)
+[![Build status](https://travis-ci.org/kpavlovsky/django-subdomains.svg?branch=master)](https://travis-ci.org/kpavlovsky/django-subdomains)
 
 
 Tested on Python 3.7 on their supported Django versions 2.1.x
