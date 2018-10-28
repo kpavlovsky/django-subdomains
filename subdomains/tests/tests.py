@@ -3,11 +3,7 @@ import mock
 import warnings
 
 from django.urls import NoReverseMatch, set_urlconf
-
-try:
-    import urlparse
-except ImportError:  # Python 3
-    from urllib import parse as urlparse
+from urllib import parse as urlparse
 
 from django.template import Context, Template
 from django.test import TestCase
@@ -24,6 +20,12 @@ def prefix_values(dictionary, prefix):
                 for key, value in dictionary.items())
 
 
+settings_kwargs = dict(
+    ALLOWED_HOSTS=['*'],
+    TEMPLATES=[{'BACKEND': 'django.template.backends.django.DjangoTemplates', }]
+)
+
+
 class SubdomainTestMixin(object):
     DOMAIN = 'example.com'
     URL_MODULE_PATH = 'subdomains.tests.urls'
@@ -36,6 +38,9 @@ class SubdomainTestMixin(object):
         self.site.save()
 
     @override_settings(
+        ALLOWED_HOSTS=['*'],
+        APPEND_SLASH=True,
+        TEMPLATES=[{'BACKEND': 'django.template.backends.django.DjangoTemplates', }],
         DEFAULT_URL_SCHEME='http',
         ROOT_URLCONF='%s.application' % URL_MODULE_PATH,
         SUBDOMAIN_URLCONFS=prefix_values({
@@ -43,10 +48,10 @@ class SubdomainTestMixin(object):
             'api': 'api',
             'www': 'marketing',
         }, prefix=URL_MODULE_PATH),
-        MIDDLEWARE_CLASSES=(
-                'django.middleware.common.CommonMiddleware',
-                'subdomains.middleware.SubdomainURLRoutingMiddleware',
-        ))
+        MIDDLEWARE=[
+            'django.middleware.common.CommonMiddleware',
+            'subdomains.middleware.SubdomainURLRoutingMiddleware',
+        ])
     def run(self, *args, **kwargs):
         super(SubdomainTestMixin, self).run(*args, **kwargs)
 
@@ -121,8 +126,7 @@ class SubdomainMiddlewareTestCase(SubdomainTestMixin, TestCase):
         with override_settings(REMOVE_WWW_FROM_DOMAIN=True):
             self.assertEqual(host('www.%s' % self.DOMAIN), 'www')
             self.assertEqual(host('subdomain.%s' % self.DOMAIN), 'subdomain')
-            self.assertEqual(host('subdomain.www.%s' % self.DOMAIN),
-                             'subdomain.www')
+            self.assertEqual(host('subdomain.www.%s' % self.DOMAIN), 'subdomain.www')
 
     def test_case_insensitive_subdomain(self):
         host = 'WWW.%s' % self.DOMAIN
@@ -184,6 +188,7 @@ class SubdomainURLRoutingTestCase(SubdomainTestMixin, TestCase):
 
 
 class SubdomainURLReverseTestCase(SubdomainTestMixin, TestCase):
+
     def test_url_join(self):
         self.assertEqual(urljoin(self.DOMAIN), 'http://%s' % self.DOMAIN)
         self.assertEqual(urljoin(self.DOMAIN, scheme='https'),
