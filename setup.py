@@ -16,7 +16,7 @@ except ImportError:
     sys.path.append(os.path.join(os.path.dirname(__file__, 'subdomains')))
     version = get_version()
 
-install_requires = ['django']
+install_requires = ['django>2.1<2.2']
 tests_require = install_requires + ['mock']
 
 setup(name='django21-subdomains',
